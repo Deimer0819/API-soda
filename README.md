@@ -56,7 +56,7 @@ Esta API funciona bajo el estándar **SODA (Socrata Open Data API)** y permite c
 
 ## Evidencia del funcionamiento
 
-### 🔹 Dashboard principal
+###  Dashboard principal
 
 Visualización general de los datos.
 
@@ -64,7 +64,7 @@ Visualización general de los datos.
 
 ---
 
-### 🔹 Gráficas
+###  Gráficas
 
 Representación visual de los datos por municipio y categorías.
 
@@ -72,7 +72,7 @@ Representación visual de los datos por municipio y categorías.
 
 ---
 
-### 🔹 Tabla de datos
+###  Tabla de datos
 
 Listado completo con opción de búsqueda.
 
@@ -80,7 +80,7 @@ Listado completo con opción de búsqueda.
 
 ---
 
-## ⚠️ Manejo de errores
+##  Manejo de errores
 
 El sistema incluye control de errores en caso de:
 
