@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acueductos Atlántico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:       #0F1923;
+      --ink-soft:  #3D4F5C;
+      --ink-muted: #7A8B96;
+      --bg:        #F3F6F9;
+      --surface:   #FFFFFF;
+      --border:    #E2E8EF;
+
+      --blue:      #2563EB;
+      --blue-lt:   #EFF4FF;
+      --indigo:    #4F46E5;
+      --sky:       #0EA5E9;
+      --cyan:      #06B6D4;
+      --emerald:   #10B981;
+      --amber:     #F59E0B;
+      --rose:      #F43F5E;
+
+      --grad-hero: linear-gradient(135deg, #1E3A5F 0%, #2563EB 50%, #06B6D4 100%);
+      --grad-card: linear-gradient(135deg, #2563EB, #06B6D4);
+
+      --r: 16px;
+      --shadow: 0 4px 24px rgba(15,25,35,.08);
+      --shadow-lg: 0 12px 40px rgba(15,25,35,.14);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── TOPNAV ── */
+    .topnav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+    .topnav-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      gap: 16px;
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .nav-logo {
+      width: 36px; height: 36px;
+      background: var(--grad-card);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .nav-name {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--ink);
+    }
+    .nav-pills {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      flex: 1;
+      justify-content: center;
+    }
+    .nav-pills::-webkit-scrollbar { display: none; }
+    .nav-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-soft);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all .18s;
+    }
+    .nav-pill:hover { background: var(--bg); color: var(--ink); }
+    .nav-pill.active { background: var(--blue-lt); color: var(--blue); font-weight: 600; }
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--emerald);
+      white-space: nowrap;
+      padding: 5px 12px;
+      background: #ECFDF5;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .status-dot {
+      width: 6px; height: 6px;
+      background: var(--emerald);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.35; } }
+
+    /* ── WRAPPER ── */
+    .wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--grad-hero);
+      border-radius: var(--r);
+      padding: 40px 44px;
+      color: #fff;
+      margin-bottom: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Ccircle cx='30' cy='30' r='28' stroke='rgba(255,255,255,.04)' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E") repeat;
+      pointer-events: none;
+    }
+    .hero-blob {
+      position: absolute;
+      right: -40px; top: -40px;
+      width: 280px; height: 280px;
+      background: radial-gradient(circle, rgba(6,182,212,.35) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: .65;
+      margin-bottom: 12px;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(22px, 4vw, 32px);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .hero-desc {
+      font-size: 14px;
+      opacity: .75;
+      max-width: 520px;
+      line-height: 1.65;
+      font-weight: 300;
+    }
+    .hero-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+    .hero-chip {
+      background: rgba(255,255,255,.15);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* ── KPI GRID ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border-radius: var(--r);
+      padding: 22px 20px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .kpi-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .kpi-stripe {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: 3px 3px 0 0;
+    }
+    .s-blue   { background: linear-gradient(90deg, var(--blue), var(--sky)); }
+    .s-indigo { background: linear-gradient(90deg, var(--indigo), #818CF8); }
+    .s-cyan   { background: linear-gradient(90deg, var(--cyan), var(--emerald)); }
+    .s-amber  { background: linear-gradient(90deg, var(--amber), #FBBF24); }
+    .s-rose   { background: linear-gradient(90deg, var(--rose), #FB7185); }
+    .kpi-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px;
+      margin-bottom: 14px;
+    }
+    .i-blue   { background: #EFF4FF; }
+    .i-indigo { background: #EEF2FF; }
+    .i-cyan   { background: #ECFEFF; }
+    .i-amber  { background: #FFFBEB; }
+    .i-rose   { background: #FFF1F2; }
+    .kpi-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .kpi-label {
+      font-size: 12px;
+      color: var(--ink-muted);
+      margin-top: 5px;
+      font-weight: 500;
+    }
+
+    /* ── SECTION ── */
+    .section { margin-bottom: 44px; }
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .section-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: var(--blue-lt);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .section-rule {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── CHART CARD ── */
+    .chart-card {
+      background: var(--surface);
+      border-radius: var(--r);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      transition: box-shadow .2s;
+    }
+    .chart-card:hover { box-shadow: var(--shadow-lg); }
+    .chart-card-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .chart-card-sub {
+      font-size: 12px;
+      color: var(--ink-muted);
+      margin-bottom: 18px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* ── TABLE ── */
+    .table-card {
+      background: var(--surface);
+      border-radius: var(--r);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .table-top {
+      padding: 18px 22px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: #FAFBFD;
+    }
+    .table-top-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .table-search {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--ink);
+      background: var(--surface);
+      width: clamp(180px, 30vw, 260px);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .table-search:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+    .table-wrap {
+      height: 380px;
+      overflow: auto;
+    }
+    .table-wrap::-webkit-scrollbar { width: 5px; height: 5px; }
+    .table-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    thead { position: sticky; top: 0; z-index: 5; }
+    th {
+      background: #F0F4F8;
+      color: var(--ink-soft);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #F2F5F8;
+      color: var(--ink-soft);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #F7F9FC; }
+    .pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* ── LOADING ── */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: rgba(243,246,249,.97);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      transition: opacity .4s;
+    }
+    #loading.gone { opacity: 0; pointer-events: none; }
+    .spin-ring {
+      width: 52px; height: 52px;
+      border: 4px solid #E2E8EF;
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+      margin-bottom: 18px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .load-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--ink); }
+    .load-sub   { font-size: 12px; color: var(--ink-muted); margin-top: 5px; }
+
+    /* ── ERROR ── */
+    .error-box {
+      background: #FFF1F2;
+      border: 1px solid #FECDD3;
+      border-radius: var(--r);
+      padding: 18px 22px;
+      color: #9F1239;
+      font-size: 13px;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--ink-muted);
+      line-height: 1.8;
+    }
+    .footer strong { color: var(--blue); }
+
+    /* ── ANIMATIONS ── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp .5s ease forwards;
+    }
+    @keyframes fadeUp { to { opacity:1; transform:none; } }
+    .delay-1 { animation-delay: .08s; }
+    .delay-2 { animation-delay: .16s; }
+    .delay-3 { animation-delay: .24s; }
+    .delay-4 { animation-delay: .32s; }
+    .delay-5 { animation-delay: .40s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .wrap { padding: 20px 16px 48px; }
+      .hero { padding: 28px 24px; }
+      .topnav-inner { padding: 0 16px; }
+      .nav-pills { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="spin-ring"></div>
+  <div class="load-title">Cargando datos</div>
+  <div class="load-sub">Consultando datos.gov.co · uvff-29et</div>
+</div>
+
+<!-- TOPNAV -->
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a class="nav-brand" href="#">
+      <div class="nav-logo">💧</div>
+      <span class="nav-name">Acueductos ATL</span>
+    </a>
+    <div class="nav-pills">
+      <a class="nav-pill active" href="#resumen">Resumen</a>
+      <a class="nav-pill" href="#municipios">Municipios</a>
+      <a class="nav-pill" href="#fuentes">Fuentes</a>
+      <a class="nav-pill" href="#coberturas">Coberturas</a>
+      <a class="nav-pill" href="#registros">Registros</a>
+    </div>
+    <div class="nav-status">
+      <span class="status-dot"></span>
+      <span id="status-text">Conectando…</span>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="wrap">
+
+  <div class="error-box" id="error-box"></div>
+
+  <!-- HERO -->
+  <div class="hero fade-up">
+    <div class="hero-blob"></div>
+    <div class="hero-title">Acueductos del<br>Departamento del Atlántico</div>
+    <div class="hero-chips">
+      <span class="hero-chip">📍 CARLOS ANDRES OVALLE</span>
+      <span class="hero-chip">DEIMER TORRES ROJAS</span>
+      <span class="hero-chip" id="hero-date">📅 —</span>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div id="resumen" class="section fade-up delay-1">
+    <div class="section-head">
+      <span class="section-tag">Overview</span>
+      <span class="section-title">Resumen General</span>
+      <span class="section-rule"></span>
+    </div>
+    <div class="kpi-grid" id="kpi-grid"></div>
+  </div>
+
+  <!-- MUNICIPIOS -->
+  <div id="municipios" class="section fade-up delay-2">
+    <div class="section-head">
+      <span class="section-tag">Geografía</span>
+      <span class="section-title">Por Municipio</span>
+      <span class="section-rule"></span>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Acueductos por Municipio</div>
+      <div class="chart-card-sub">Cantidad de registros por entidad territorial</div>
+      <div id="chart-municipios"></div>
+    </div>
+  </div>
+
+  <!-- FUENTES -->
+  <div id="fuentes" class="section fade-up delay-3">
+    <div class="section-head">
+      <span class="section-tag">Hidrología</span>
+      <span class="section-title">Fuentes de Abastecimiento</span>
+      <span class="section-rule"></span>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Fuentes por Municipio</div>
+      <div class="chart-card-sub">Comparativo entre territorios</div>
+      <div id="chart-fuentes-bar"></div>
+    </div>
+  </div>
+
+  <!-- COBERTURAS -->
+  <div id="coberturas" class="section fade-up delay-4">
+    <div class="section-head">
+      <span class="section-tag">Servicio</span>
+      <span class="section-title">Coberturas y Clasificación</span>
+      <span class="section-rule"></span>
+    </div>
+    <div class="grid-2">
+      <div class="chart-card">
+        <div class="chart-card-title">Estado del Servicio</div>
+        <div class="chart-card-sub">Activo vs otras categorías</div>
+        <div id="chart-estado"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Tipo de Acueducto</div>
+        <div class="chart-card-sub">Clasificación por tipología</div>
+        <div id="chart-tipo"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USUARIOS -->
+  <div id="usuarios" class="section fade-up delay-5">
+    <div class="section-head">
+      <span class="section-tag">Datos numéricos</span>
+      <span class="section-title">Distribución Cuantitativa</span>
+      <span class="section-rule"></span>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Valores Numéricos por Municipio</div>
+      <div class="chart-card-sub">Principales variables cuantitativas del dataset</div>
+      <div id="chart-numericos"></div>
+    </div>
+  </div>
+
+  <!-- REGISTROS -->
+  <div id="registros" class="section fade-up delay-5">
+    <div class="section-head">
+      <span class="section-tag">Dataset</span>
+      <span class="section-title">Registros Completos</span>
+      <span class="section-rule"></span>
+    </div>
+    <div class="table-card">
+      <div class="table-top">
+        <div class="table-top-title">Listado de acueductos <span id="badge-count" style="font-weight:400;color:var(--ink-muted);font-size:13px;"></span></div>
+        <input class="table-search" id="table-search" type="text" placeholder="🔍 Buscar registros…" oninput="filterTable(this.value)" />
+      </div>
+      <div class="table-wrap">
+        <table id="data-table">
+          <thead id="table-head"></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<footer class="footer">
+  <div>Datos Abiertos Colombia · <strong>datos.gov.co</strong> · uvff-29et</div>
+  <div style="margin-top:6px;">Realizado por <strong>Deimer Torres Rojas</strong> &amp; <strong>Carlos Ovalle</strong></div>
+</footer>
+
+<script>
+const API_URL = 'https://www.datos.gov.co/resource/uvff-29et.json?$limit=2000';
+
+/* ── PALETTES ── */
+const P_BLUE   = ['#2563EB','#3B82F6','#60A5FA','#93C5FD','#BFDBFE','#0EA5E9','#38BDF8'];
+const P_MULTI  = ['#2563EB','#0EA5E9','#10B981','#F59E0B','#F43F5E','#4F46E5','#06B6D4','#8B5CF6','#EC4899','#14B8A6'];
+const P_WARM   = ['#F59E0B','#F43F5E','#4F46E5','#10B981','#0EA5E9','#8B5CF6','#EC4899'];
+
+let allData = [], tableColumns = [];
+
+async function fetchData() {
+  const r = await fetch(API_URL);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+function countBy(arr, field) {
+  const m = {};
+  arr.forEach(row => {
+    const v = (row[field] || 'Sin dato').toString().trim() || 'Sin dato';
+    m[v] = (m[v] || 0) + 1;
+  });
+  return m;
+}
+
+function getCategoricalCols(data) {
+  if (!data.length) return [];
+  return Object.keys(data[0]).filter(k => {
+    const vals = data.slice(0, 30).map(r => r[k]);
+    const nums = vals.filter(v => v != null && !isNaN(parseFloat(v)));
+    return nums.length < vals.length * 0.6;
+  });
+}
+
+function getNumericCols(data) {
+  if (!data.length) return [];
+  return Object.keys(data[0]).filter(k => {
+    const vals = data.slice(0, 30).map(r => r[k]).filter(v => v != null);
+    const nums = vals.filter(v => !isNaN(parseFloat(v)));
+    return nums.length > vals.length * 0.6 && nums.length > 3;
+  });
+}
+
+function guessCol(data, keywords) {
+  const cols = Object.keys(data[0] || {});
+  for (const kw of keywords) {
+    const f = cols.find(c => c.toLowerCase().includes(kw));
+    if (f) return f;
+  }
+  return null;
+}
+
+const layoutBase = {
+  paper_bgcolor: 'rgba(0,0,0,0)',
+  plot_bgcolor: 'rgba(0,0,0,0)',
+  font: { family: "'Inter', sans-serif", size: 12, color: '#3D4F5C' },
+  margin: { l: 50, r: 20, t: 10, b: 50 },
+};
+
+/* ── KPIs ── */
+function renderKPIs(data) {
+  const municCol  = guessCol(data, ['municipio','ciudad','localidad']);
+  const fuenteCol = guessCol(data, ['fuente','abastecimiento','captacion']);
+  const tipoCol   = guessCol(data, ['tipo','clase','categoria']);
+
+  const items = [
+    { icon:'📍', label:'Total Registros', value: data.length.toLocaleString('es'), stripe:'s-blue', icon_bg:'i-blue' },
+    { icon:'🏙️', label:'Municipios', value: municCol ? Object.keys(countBy(data, municCol)).length : '—', stripe:'s-indigo', icon_bg:'i-indigo' },
+    { icon:'📋', label:'Campos del Dataset', value: Object.keys(data[0]).length, stripe:'s-rose', icon_bg:'i-rose' },
+  ];
+
+  document.getElementById('kpi-grid').innerHTML = items.map(it => `
+    <div class="kpi-card">
+      <div class="kpi-stripe ${it.stripe}"></div>
+      <div class="kpi-icon ${it.icon_bg}">${it.icon}</div>
+      <div class="kpi-value">${it.value}</div>
+      <div class="kpi-label">${it.label}</div>
+    </div>
+  `).join('');
+}
+
+/* ── MUNICIPIOS ── */
+function renderMunicipios(data) {
+  const col = guessCol(data, ['municipio','localidad','ciudad','territorio']);
+  if (!col) return;
+  const counts = countBy(data, col);
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+  const labels = sorted.map(e => e[0]);
+  const values = sorted.map(e => e[1]);
+
+  Plotly.newPlot('chart-municipios', [{
+    type: 'bar', x: values, y: labels, orientation: 'h',
+    marker: { color: values.map((_,i) => P_BLUE[i % P_BLUE.length]), line:{color:'rgba(255,255,255,.4)',width:1} },
+    text: values, textposition: 'outside',
+    hovertemplate: '<b>%{y}</b><br>%{x} acueductos<extra></extra>',
+  }], {
+    ...layoutBase,
+    margin: { l: 170, r: 60, t: 10, b: 40 },
+    xaxis: { gridcolor:'#EDF2F7', title:{text:'Acueductos',standoff:10} },
+    yaxis: { automargin: true },
+    height: Math.max(340, labels.length * 30),
+  }, { responsive: true, displayModeBar: false });
+}
+
+/* ── FUENTES PIE ── */
+function renderFuentesPie(data) {
+  const col = guessCol(data, ['fuente','abastecimiento','captacion','recurso','origen']);
+  if (!col) { document.getElementById('chart-fuentes-pie').innerHTML = '<p style="padding:20px;color:#7A8B96;font-size:13px">Campo no encontrado.</p>'; return; }
+  const counts = countBy(data, col);
+  const labels = Object.keys(counts), values = Object.values(counts);
+  Plotly.newPlot('chart-fuentes-pie', [{
+    type: 'pie', labels, values, hole: 0.48,
+    marker: { colors: P_MULTI, line:{color:'#fff',width:2} },
+    textinfo: 'label+percent',
+    textfont: { size: 11 },
+    hovertemplate: '<b>%{label}</b><br>%{value} acueductos · %{percent}<extra></extra>',
+  }], {
+    ...layoutBase,
+    margin: { l:16, r:16, t:10, b:10 },
+    legend: { orientation:'h', y:-0.18, font:{size:11} },
+    showlegend: labels.length <= 8,
+    height: 300,
+  }, { responsive: true, displayModeBar: false });
+}
+
+/* ── FUENTES BAR ── */
+function renderFuentesBar(data) {
+  const fCol = guessCol(data, ['fuente','abastecimiento','captacion','origen']);
+  const mCol = guessCol(data, ['municipio','localidad','ciudad']);
+  if (!fCol || !mCol) {
+    const cats = getCategoricalCols(data);
+    if (!cats.length) return;
+    const col = cats[1] || cats[0];
+    const counts = countBy(data, col);
+    const labels = Object.keys(counts).slice(0, 12);
+    const vals   = labels.map(l => counts[l]);
+    Plotly.newPlot('chart-fuentes-bar', [{
+      type:'bar', x:labels, y:vals,
+      marker:{color:P_WARM},
+      hovertemplate:'<b>%{x}</b><br>%{y}<extra></extra>',
+    }], {
+      ...layoutBase,
+      margin:{l:50,r:20,t:10,b:110},
+      xaxis:{tickangle:-35,automargin:true},
+      yaxis:{gridcolor:'#EDF2F7'},
+      height:300,
+    }, { responsive:true, displayModeBar:false });
+    return;
+  }
+  const fuentes   = [...new Set(data.map(r => (r[fCol]||'Sin dato').trim()))];
+  const municipios = [...new Set(data.map(r => (r[mCol]||'Sin dato').trim()))].slice(0,12);
+  const traces = fuentes.slice(0,7).map((f,i) => ({
+    type:'bar', name:f, x:municipios,
+    y:municipios.map(m => data.filter(r=>(r[mCol]||'').trim()===m&&(r[fCol]||'Sin dato').trim()===f).length),
+    marker:{color:P_MULTI[i%P_MULTI.length]},
+    hovertemplate:`<b>${f}</b><br>%{x}: %{y}<extra></extra>`,
+  }));
+  Plotly.newPlot('chart-fuentes-bar', traces, {
+    ...layoutBase,
+    barmode:'stack',
+    margin:{l:50,r:20,t:10,b:110},
+    xaxis:{tickangle:-35,automargin:true},
+    yaxis:{gridcolor:'#EDF2F7'},
+    legend:{font:{size:10}},
+    height:300,
+  }, { responsive:true, displayModeBar:false });
+}
+
+/* ── GENERIC DONUT ── */
+function renderDonut(divId, data, col) {
+  if (!col) { document.getElementById(divId).innerHTML='<p style="padding:20px;color:#7A8B96;font-size:13px">Campo no disponible.</p>'; return; }
+  const counts = countBy(data, col);
+  const labels = Object.keys(counts), values = Object.values(counts);
+  Plotly.newPlot(divId, [{
+    type:'pie', labels, values, hole:0.5,
+    marker:{colors:P_MULTI, line:{color:'#fff',width:2}},
+    textinfo:'label+percent',
+    textfont:{size:11},
+    hovertemplate:'<b>%{label}</b><br>%{value} · %{percent}<extra></extra>',
+  }], {
+    ...layoutBase,
+    margin:{l:16,r:16,t:10,b:10},
+    legend:{orientation:'h',y:-0.18,font:{size:10}},
+    showlegend:labels.length<=8,
+    height:290,
+  }, { responsive:true, displayModeBar:false });
+}
+
+/* ── NUMÉRICOS ── */
+function renderNumericos(data) {
+  const numCols = getNumericCols(data);
+  const mCol = guessCol(data, ['municipio','localidad','ciudad']);
+  if (!numCols.length) { document.getElementById('chart-numericos').innerHTML='<p style="padding:20px;color:#7A8B96;font-size:13px">Sin columnas numéricas.</p>'; return; }
+  const col = numCols[0];
+  if (mCol) {
+    const map = {};
+    data.forEach(r => {
+      const m = (r[mCol]||'Sin dato').trim();
+      const v = parseFloat(r[col]);
+      if (!isNaN(v)) map[m] = (map[m]||0) + v;
+    });
+    const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,15);
+    const labels = sorted.map(e=>e[0]), vals = sorted.map(e=>+e[1].toFixed(1));
+    Plotly.newPlot('chart-numericos', [{
+      type:'bar', x:labels, y:vals,
+      marker:{
+        color:vals,
+        colorscale:[['0','#BFDBFE'],['0.5','#3B82F6'],['1','#1D4ED8']],
+        showscale:false,
+        line:{color:'rgba(255,255,255,.3)',width:1}
+      },
+      text:vals.map(v=>v.toLocaleString('es')), textposition:'outside',
+      hovertemplate:'<b>%{x}</b><br>%{y}<extra></extra>',
+    }], {
+      ...layoutBase,
+      margin:{l:60,r:30,t:20,b:130},
+      xaxis:{tickangle:-35,automargin:true,gridcolor:'#EDF2F7'},
+      yaxis:{gridcolor:'#EDF2F7',title:{text:col.replace(/_/g,' '),standoff:8}},
+      height:380,
+    }, { responsive:true, displayModeBar:false });
+  } else {
+    const vals = data.map(r=>parseFloat(r[col])).filter(v=>!isNaN(v));
+    Plotly.newPlot('chart-numericos', [{
+      type:'histogram', x:vals,
+      marker:{color:'#3B82F6',line:{color:'#fff',width:1}},
+      hovertemplate:'%{x}<br>Frecuencia: %{y}<extra></extra>',
+    }], {
+      ...layoutBase,
+      xaxis:{gridcolor:'#EDF2F7',title:{text:col.replace(/_/g,' ')}},
+      yaxis:{gridcolor:'#EDF2F7',title:{text:'Frecuencia'}},
+      height:360,
+    }, { responsive:true, displayModeBar:false });
+  }
+}
+
+/* ── TABLE ── */
+const PILLS = {
+  activo:   ['#D1FAE5','#065F46'], inactivo: ['#FEE2E2','#991B1B'],
+  si:       ['#D1FAE5','#065F46'], no:       ['#FEE2E2','#991B1B'],
+  público:  ['#DBEAFE','#1E40AF'], privado:  ['#FDE8D8','#92400E'],
+  mixto:    ['#FEF9C3','#92400E'],
+};
+
+function renderTable(data) {
+  if (!data.length) return;
+  const cols = Object.keys(data[0]);
+  tableColumns = cols;
+  document.getElementById('table-head').innerHTML = `<tr>${cols.map(c=>`<th>${c.replace(/_/g,' ')}</th>`).join('')}</tr>`;
+  renderTableBody(data);
+  document.getElementById('badge-count').textContent = `· ${data.length} registros`;
+}
+
+function renderTableBody(rows) {
+  document.getElementById('table-body').innerHTML = rows.slice(0,500).map(row => {
+    const cells = tableColumns.map(c => {
+      const val = row[c] != null ? row[c] : '—';
+      const key = val.toString().toLowerCase();
+      if (PILLS[key]) return `<td><span class="pill" style="background:${PILLS[key][0]};color:${PILLS[key][1]}">${val}</span></td>`;
+      return `<td>${val}</td>`;
+    });
+    return `<tr>${cells.join('')}</tr>`;
+  }).join('');
+}
+
+function filterTable(q) {
+  q = q.toLowerCase().trim();
+  renderTableBody(q ? allData.filter(row => Object.values(row).some(v=>v&&v.toString().toLowerCase().includes(q))) : allData);
+}
+
+/* ── NAV HIGHLIGHT ── */
+function setupNav() {
+  const ids = ['resumen','municipios','fuentes','coberturas','registros'];
+  const pills = document.querySelectorAll('.nav-pill');
+  window.addEventListener('scroll', () => {
+    let cur = '';
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && window.scrollY + 120 >= el.offsetTop) cur = id;
+    });
+    pills.forEach(p => p.classList.toggle('active', p.getAttribute('href')==='#'+cur));
+  });
+}
+
+/* ── MAIN ── */
+async function main() {
+  const overlay = document.getElementById('loading');
+  const statusEl = document.getElementById('status-text');
+  const errorBox = document.getElementById('error-box');
+  try {
+    const data = await fetchData();
+    allData = data;
+    if (!data?.length) throw new Error('Dataset vacío');
+
+    statusEl.textContent = `${data.length} registros`;
+    document.getElementById('hero-date').textContent = '📅 ' + new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+
+    renderKPIs(data);
+    renderMunicipios(data);
+    renderFuentesBar(data);
+
+    const estadoCol = guessCol(data, ['estado','activo','condicion','status','operacion']);
+    const tipoCol   = guessCol(data, ['tipo','clase','categoria','modalidad']);
+    const cats = getCategoricalCols(data);
+    renderDonut('chart-estado', data, estadoCol || cats[0]);
+    renderDonut('chart-tipo', data, tipoCol || cats[1] || cats[0]);
+
+    renderNumericos(data);
+    renderTable(data);
+    setupNav();
+
+    overlay.classList.add('gone');
+    setTimeout(() => overlay.style.display = 'none', 500);
+  } catch (err) {
+    console.error(err);
+    overlay.classList.add('gone');
+    setTimeout(() => overlay.style.display = 'none', 400);
+    statusEl.style.color = '#F43F5E';
+    statusEl.textContent = 'Error';
+    errorBox.style.display = 'block';
+    errorBox.textContent = '⚠️ No se pudo cargar la API: ' + err.message;
+  }
+}
+
+window.addEventListener('DOMContentLoaded', main);
+</script>
+</body>
+</html>
